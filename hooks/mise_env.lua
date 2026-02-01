@@ -6,6 +6,7 @@ local function get_config_files(fnox_bin)
         return cmd.exec(fnox_bin .. " config-files")
     end)
     if not ok or not output or output == "" then
+        print("[fnox] warning: `" .. fnox_bin .. " config-files` failed, skipping fnox env")
         return {}
     end
     local files = {}
