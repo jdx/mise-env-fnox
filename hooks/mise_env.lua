@@ -1,26 +1,27 @@
 local cmd = require("cmd")
 local json = require("json")
-local file = require("file")
 
-local function find_fnox_config()
-    local cwd = os.getenv("PWD") or "."
-    local path = cwd
-    while path ~= "/" and path ~= "" do
-        local config = path .. "/fnox.toml"
-        if file.exists(config) then
-            return config
-        end
-        path = path:match("(.+)/[^/]*$") or ""
+local function get_config_files(fnox_bin)
+    local ok, output = pcall(function()
+        return cmd.exec(fnox_bin .. " config-files")
+    end)
+    if not ok or not output or output == "" then
+        print("[fnox] warning: `" .. fnox_bin .. " config-files` failed, skipping fnox env")
+        return {}
     end
-    return nil
+    local files = {}
+    for line in output:gmatch("[^\n]+") do
+        table.insert(files, line)
+    end
+    return files
 end
 
 function PLUGIN:MiseEnv(ctx)
     local fnox_bin = ctx.options.fnox_bin or "fnox"
     local profile = ctx.options.profile
 
-    local config_path = find_fnox_config()
-    if not config_path then
+    local config_files = get_config_files(fnox_bin)
+    if #config_files == 0 then
         return {cacheable = true, watch_files = {}, env = {}}
     end
 
@@ -34,7 +35,7 @@ function PLUGIN:MiseEnv(ctx)
     end)
 
     if not ok then
-        return {cacheable = true, watch_files = {config_path}, env = {}}
+        return {cacheable = true, watch_files = config_files, env = {}}
     end
 
     local data = json.decode(output)
@@ -47,7 +48,7 @@ function PLUGIN:MiseEnv(ctx)
 
     return {
         cacheable = true,
-        watch_files = {config_path},
+        watch_files = config_files,
         env = env_vars
     }
 end
