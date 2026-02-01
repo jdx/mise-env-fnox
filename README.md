@@ -11,15 +11,16 @@ Add the plugin to your project's `mise.toml`:
 fnox-env = "https://github.com/jdx/mise-env-fnox"
 
 [env]
-_.fnox-env = {}
+_.fnox-env = { tools = true }
 ```
 
 ## Configuration Options
 
-| Option     | Description         | Default   |
-| ---------- | ------------------- | --------- |
-| `profile`  | fnox profile to use | `default` |
-| `fnox_bin` | Path to fnox binary | `fnox`    |
+| Option     | Description                                      | Default   |
+| ---------- | ------------------------------------------------ | --------- |
+| `tools`    | Use mise-managed tools (required if fnox is installed via mise) | `false`   |
+| `profile`  | fnox profile to use                              | `default` |
+| `fnox_bin` | Path to fnox binary                              | `fnox`    |
 
 ### Examples
 
@@ -29,7 +30,7 @@ fnox-env = "https://github.com/jdx/mise-env-fnox"
 
 [env]
 # Use default profile
-_.fnox-env = {}
+_.fnox-env = { tools = true }
 ```
 
 ```toml
@@ -38,7 +39,7 @@ fnox-env = "https://github.com/jdx/mise-env-fnox"
 
 [env]
 # Use production profile
-_.fnox-env = { profile = "production" }
+_.fnox-env = { tools = true, profile = "production" }
 ```
 
 ## Environment-Specific Configuration
@@ -50,13 +51,13 @@ Combine with mise's environment system for different profiles per environment:
 fnox-env = "https://github.com/jdx/mise-env-fnox"
 
 [env]
-_.fnox-env = { profile = "dev" }
+_.fnox-env = { tools = true, profile = "dev" }
 
 [env.production]
-_.fnox-env = { profile = "production" }
+_.fnox-env = { tools = true, profile = "production" }
 
 [env.staging]
-_.fnox-env = { profile = "staging" }
+_.fnox-env = { tools = true, profile = "staging" }
 ```
 
 Then activate different environments:
