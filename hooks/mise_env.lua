@@ -49,6 +49,7 @@ function PLUGIN:MiseEnv(ctx)
     return {
         cacheable = true,
         watch_files = config_files,
-        env = env_vars
+        env = env_vars,
+        redact = true
     }
 end
