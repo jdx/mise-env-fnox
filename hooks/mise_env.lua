@@ -5,8 +5,11 @@ local function get_config_files(fnox_bin)
     local ok, output = pcall(function()
         return cmd.exec(fnox_bin .. " config-files")
     end)
-    if not ok or not output or output == "" then
-        print("[fnox] warning: `" .. fnox_bin .. " config-files` failed, skipping fnox env")
+    if not ok then
+        print("[fnox] warning: `" .. fnox_bin .. " config-files` failed: " .. tostring(output))
+        return {}
+    end
+    if not output or output == "" then
         return {}
     end
     local files = {}
@@ -35,10 +38,16 @@ function PLUGIN:MiseEnv(ctx)
     end)
 
     if not ok then
+        print("[fnox] warning: `" .. command .. "` failed: " .. tostring(output))
         return {cacheable = true, watch_files = config_files, env = {}}
     end
 
-    local data = json.decode(output)
+    local decode_ok, data = pcall(json.decode, output)
+    if not decode_ok then
+        print("[fnox] warning: failed to parse JSON from `" .. command .. "`: " .. tostring(data))
+        return {cacheable = true, watch_files = config_files, env = {}}
+    end
+
     local secrets = data.secrets or {}
 
     local env_vars = {}
