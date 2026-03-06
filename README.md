@@ -16,11 +16,12 @@ _.fnox-env = { tools = true }
 
 ## Configuration Options
 
-| Option     | Description                                      | Default   |
-| ---------- | ------------------------------------------------ | --------- |
-| `tools`    | Use mise-managed tools (required if fnox is installed via mise) | `false`   |
-| `profile`  | fnox profile to use                              | `default` |
-| `fnox_bin` | Path to fnox binary                              | `fnox`    |
+| Option     | Description                                                     | Default                   |
+|------------|-----------------------------------------------------------------|---------------------------|
+| `tools`    | Use mise-managed tools (required if fnox is installed via mise) | `false`                   |
+| `profile`  | fnox profile to use                                             | `default`                 |
+| `config`   | Path to fnox configuration file                                 | (auto-discovered by fnox) |
+| `fnox_bin` | Path to fnox binary                                             | `fnox`                    |
 
 ### Examples
 
@@ -40,6 +41,15 @@ fnox-env = "https://github.com/jdx/mise-env-fnox"
 [env]
 # Use production profile
 _.fnox-env = { tools = true, profile = "production" }
+```
+
+```toml
+[plugins]
+fnox-env = "https://github.com/jdx/mise-env-fnox"
+
+[env]
+# Use a custom config file location
+_.fnox-env = { tools = true, config = "/secrets/fnox.toml" }
 ```
 
 ## Environment-Specific Configuration
@@ -77,17 +87,17 @@ MISE_ENV=staging mise env
 
 When mise activates your environment, the fnox plugin:
 
-1. Searches for `fnox.toml` in the current directory and parent directories
+1. Searches for `fnox.toml` in the current directory and parent directories (or uses the specified `config` path)
 2. Resolves secrets using your configured providers
 3. Exports the secrets as environment variables
-4. Watches `fnox.toml` for changes to invalidate the cache
+4. Watches the fnox configuration file(s) for changes to invalidate the cache
 
 ## Caching
 
 This plugin supports mise's environment caching (when `MISE_ENV_CACHE=1`). Secrets are:
 
 - Cached encrypted on disk for fast subsequent loads
-- Automatically refreshed when `fnox.toml` changes
+- Automatically refreshed when the fnox configuration file changes
 - Scoped to your shell session for security
 
 To enable caching:
