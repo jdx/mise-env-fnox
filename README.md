@@ -19,11 +19,14 @@ _.fnox-env = { tools = true }
 
 ## Configuration Options
 
-| Option     | Description                                      | Default   |
-| ---------- | ------------------------------------------------ | --------- |
-| `tools`    | Use mise-managed tools (required if fnox is installed via mise) | `false`   |
-| `profile`  | fnox profile to use                              | `default` |
-| `fnox_bin` | Path to fnox binary                              | `fnox`    |
+| Option            | Description                                                          | Default   |
+| ----------------- | -------------------------------------------------------------------- | --------- |
+| `tools`           | Use mise-managed tools (required if fnox is installed via mise)      | `false`   |
+| `profile`         | fnox profile to use                                                  | `default` |
+| `fnox_bin`        | Path to fnox binary                                                  | `fnox`    |
+| `leases`          | Run `fnox lease create --all` on activation (requires `[leases.*]`)  | `false`   |
+| `export_timeout`  | Seconds before `fnox export` is killed                               | `15`      |
+| `lease_timeout`   | Seconds before `fnox lease create` is killed                         | `30`      |
 
 ### Examples
 
