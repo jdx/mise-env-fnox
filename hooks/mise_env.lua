@@ -3,10 +3,15 @@ local json = require("json")
 
 local function command_not_found(err)
     local message = tostring(err):lower()
-    return message:find("command not found", 1, true) ~= nil or message:find("exit status: 127", 1, true) ~= nil
+    return message:find("command not found", 1, true) ~= nil
+        or message:find("exit status: 127", 1, true) ~= nil
+        or message:find("is not recognized as an internal or external command", 1, true) ~= nil
 end
 
 local function fnox_command(fnox_bin, args)
+    if RUNTIME and RUNTIME.osType == "windows" then
+        return '"' .. fnox_bin .. '" ' .. args
+    end
     return "'" .. fnox_bin:gsub("'", "'\\''") .. "' " .. args
 end
 

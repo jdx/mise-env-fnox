@@ -26,6 +26,7 @@ end
 
 PLUGIN = {}
 assert(loadfile(plugin_dir .. "/hooks/mise_env.lua"))()
+RUNTIME = { osType = "linux" }
 
 local function reset(next_responses)
     calls = {}
@@ -60,3 +61,21 @@ reset({
 result = PLUGIN:MiseEnv({ options = { fnox_bin = "/custom/fnox" } })
 assert(#calls == 2 and calls[1] == "'/custom/fnox' config-files", "explicit fnox_bin must take precedence")
 assert(result.env[1].key == "TOKEN", "explicit fnox_bin should export")
+
+RUNTIME = { osType = "windows" }
+reset({
+    ['"fnox" config-files'] = {
+        ok = false,
+        output = "exit status: 1: 'fnox' is not recognized as an internal or external command",
+    },
+    ["mise which fnox"] = { ok = true, output = "C:\\mise installs\\fnox\\fnox.exe\r\n" },
+    ['"C:\\mise installs\\fnox\\fnox.exe" config-files'] = { ok = true, output = "C:\\project\\fnox.toml\r\n" },
+    ['"C:\\mise installs\\fnox\\fnox.exe" export --format json'] = { ok = true, output = "{}" },
+})
+result = PLUGIN:MiseEnv({ options = {} })
+assert(calls[2] == "mise which fnox", "Windows command-not-found should resolve through mise")
+assert(
+    calls[4] == '"C:\\mise installs\\fnox\\fnox.exe" export --format json',
+    "Windows resolved executable should be quoted for export"
+)
+assert(result.env[1].key == "TOKEN", "Windows resolved fnox output should be used")
