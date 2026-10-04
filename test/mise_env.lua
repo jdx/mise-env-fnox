@@ -33,27 +33,30 @@ local function reset(next_responses)
 end
 
 reset({
-    ["fnox config-files"] = { ok = false, output = "exit status: 127: fnox: command not found" },
-    ["mise which fnox"] = { ok = true, output = "/mise/installs/fnox/1.0.0/bin/fnox\n" },
-    ["/mise/installs/fnox/1.0.0/bin/fnox config-files"] = { ok = true, output = "/project/fnox.toml\n" },
-    ["/mise/installs/fnox/1.0.0/bin/fnox export --format json"] = { ok = true, output = "{}" },
+    ["'fnox' config-files"] = {
+        ok = false,
+        output = "runtime error: Command failed with status exit status: 127: sh: fnox: command not found",
+    },
+    ["mise which fnox"] = { ok = true, output = "/mise/installs/fnox 1.0.0/bin/fnox\n" },
+    ["'/mise/installs/fnox 1.0.0/bin/fnox' config-files"] = { ok = true, output = "/project/fnox.toml\n" },
+    ["'/mise/installs/fnox 1.0.0/bin/fnox' export --format json"] = { ok = true, output = "{}" },
 })
 local result = PLUGIN:MiseEnv({ options = {} })
 assert(calls[2] == "mise which fnox", "missing fnox should resolve through mise")
-assert(calls[4] == "/mise/installs/fnox/1.0.0/bin/fnox export --format json", "resolved binary should export")
+assert(calls[4] == "'/mise/installs/fnox 1.0.0/bin/fnox' export --format json", "resolved binary should be quoted for export")
 assert(result.env[1].key == "TOKEN", "resolved fnox output should be used")
 
 reset({
-    ["fnox config-files"] = { ok = false, output = "authentication failed" },
+    ["'fnox' config-files"] = { ok = false, output = "authentication failed" },
 })
 result = PLUGIN:MiseEnv({ options = {} })
-assert(#calls == 1 and calls[1] == "fnox config-files", "authentication failures must not be retried as missing binaries")
+assert(#calls == 1 and calls[1] == "'fnox' config-files", "authentication failures must not be retried as missing binaries")
 assert(#result.env == 0, "failed config discovery should retain the empty environment result")
 
 reset({
-    ["/custom/fnox config-files"] = { ok = true, output = "/project/fnox.toml\n" },
-    ["/custom/fnox export --format json"] = { ok = true, output = "{}" },
+    ["'/custom/fnox' config-files"] = { ok = true, output = "/project/fnox.toml\n" },
+    ["'/custom/fnox' export --format json"] = { ok = true, output = "{}" },
 })
 result = PLUGIN:MiseEnv({ options = { fnox_bin = "/custom/fnox" } })
-assert(#calls == 2 and calls[1] == "/custom/fnox config-files", "explicit fnox_bin must take precedence")
+assert(#calls == 2 and calls[1] == "'/custom/fnox' config-files", "explicit fnox_bin must take precedence")
 assert(result.env[1].key == "TOKEN", "explicit fnox_bin should export")

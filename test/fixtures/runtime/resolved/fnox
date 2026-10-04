@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "$1" = "config-files" ]; then
+    printf '%s\n' /work/fnox.toml
+    exit 0
+fi
+
+if [ "$1" = "export" ] && [ "$2" = "--format" ] && [ "$3" = "json" ]; then
+    printf '%s\n' '{"secrets":{"FNOX_FIRST_INSTALL_TEST":"resolved"}}'
+    exit 0
+fi
+
+exit 1

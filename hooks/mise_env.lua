@@ -6,9 +6,13 @@ local function command_not_found(err)
     return message:find("command not found", 1, true) ~= nil or message:find("exit status: 127", 1, true) ~= nil
 end
 
+local function fnox_command(fnox_bin, args)
+    return "'" .. fnox_bin:gsub("'", "'\\''") .. "' " .. args
+end
+
 local function get_config_files(fnox_bin)
     local ok, output = pcall(function()
-        return cmd.exec(fnox_bin .. " config-files")
+        return cmd.exec(fnox_command(fnox_bin, "config-files"))
     end)
 
     -- During a first mise install the selected fnox tool may not have reached PATH
@@ -22,7 +26,7 @@ local function get_config_files(fnox_bin)
         if resolved_ok and resolved_bin and resolved_bin ~= "" then
             fnox_bin = resolved_bin:match("^%s*(.-)%s*$")
             ok, output = pcall(function()
-                return cmd.exec(fnox_bin .. " config-files")
+                return cmd.exec(fnox_command(fnox_bin, "config-files"))
             end)
         else
             output = initial_error
@@ -53,7 +57,7 @@ function PLUGIN:MiseEnv(ctx)
         return {cacheable = true, watch_files = {}, env = {}}
     end
 
-    local command = fnox_bin .. " export --format json"
+    local command = fnox_command(fnox_bin, "export --format json")
     if profile then
         command = command .. " --profile " .. profile
     end
