@@ -25,6 +25,11 @@ _.fnox-env = { tools = true }
 | `profile`  | fnox profile to use                              | `default` |
 | `fnox_bin` | Path to fnox binary                              | `fnox`    |
 
+When fnox is managed by mise, the plugin automatically retries with `mise which
+fnox` only if the bare command is not yet on `PATH` during first installation.
+Other fnox failures, including authentication failures, keep their normal warning
+instead of being treated as a missing binary.
+
 ### Examples
 
 ```toml

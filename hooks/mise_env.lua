@@ -1,34 +1,68 @@
 local cmd = require("cmd")
 local json = require("json")
 
+local function command_not_found(err)
+    local message = tostring(err):lower()
+    return message:find("command not found", 1, true) ~= nil
+        or message:find("exit status: 127", 1, true) ~= nil
+        or message:find("is not recognized as an internal or external command", 1, true) ~= nil
+end
+
+local function fnox_command(fnox_bin, args)
+    if RUNTIME and RUNTIME.osType == "windows" then
+        return '"' .. fnox_bin .. '" ' .. args
+    end
+    return "'" .. fnox_bin:gsub("'", "'\\''") .. "' " .. args
+end
+
 local function get_config_files(fnox_bin)
     local ok, output = pcall(function()
-        return cmd.exec(fnox_bin .. " config-files")
+        return cmd.exec(fnox_command(fnox_bin, "config-files"))
     end)
+
+    -- During a first mise install the selected fnox tool may not have reached PATH
+    -- when this hook runs. Only resolve through mise for that precise failure: other
+    -- fnox failures (including authentication failures) retain their normal warning.
+    if not ok and fnox_bin == "fnox" and command_not_found(output) then
+        local initial_error = output
+        local resolved_ok, resolved_bin = pcall(function()
+            return cmd.exec("mise which fnox")
+        end)
+        if resolved_ok and resolved_bin and resolved_bin ~= "" then
+            fnox_bin = resolved_bin:match("^%s*(.-)%s*$")
+            ok, output = pcall(function()
+                return cmd.exec(fnox_command(fnox_bin, "config-files"))
+            end)
+        else
+            output = initial_error
+        end
+    end
+
     if not ok then
         print("[fnox] warning: `" .. fnox_bin .. " config-files` failed: " .. tostring(output))
-        return {}
+        return {}, fnox_bin
     end
     if not output or output == "" then
-        return {}
+        return {}, fnox_bin
     end
     local files = {}
     for line in output:gmatch("[^\n]+") do
         table.insert(files, line)
     end
-    return files
+    return files, fnox_bin
 end
 
 function PLUGIN:MiseEnv(ctx)
     local fnox_bin = ctx.options.fnox_bin or "fnox"
     local profile = ctx.options.profile
 
-    local config_files = get_config_files(fnox_bin)
+    local config_files
+    config_files, fnox_bin = get_config_files(fnox_bin)
     if #config_files == 0 then
         return {cacheable = true, watch_files = {}, env = {}}
     end
 
-    local command = fnox_bin .. " export --format json"
+    local command = fnox_command(fnox_bin, "export --format json")
     if profile then
         command = command .. " --profile " .. profile
     end

@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "$1" = "which" ] && [ "$2" = "fnox" ]; then
+    printf '%s\n' /work/resolved/fnox
+    exit 0
+fi
+
+exit 1
